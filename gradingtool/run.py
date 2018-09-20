@@ -11,14 +11,36 @@ from matrix_utils import MatrixUtils
 def project_points_to_line(interface):
     """ for grade plane avg calc """
 
+
+    D = {}
+    D["norm"] = []
+    D["mpts"] = []
+    D["closepts"] = []
+    D["number"] = None
+
+    DIST_TOL = 55.0 * 1000.0
+    MIN_SPACING = 1.0 * 1000.0
+
     data_lst = interface.recieve()
-    curves = data_lst["curves"]
+    curve = data_lst["curves"]
     meshpts = data_lst["points"]
 
-    curve = curves[0]
-    vertices = [np.array(v) for v in curve]
-    msrf = MatrixSurface(np.array(vertices))
+    # Adding path curves to meshpts
+    curve_to_meshpts = data_lst["topocrvs"]
+    vertices_to_meshpts = [np.array(v) for v in curve_to_meshpts]
+    vertices_to_meshpts = MatrixUtils.split_curve_by_distance(vertices_to_meshpts + [vertices_to_meshpts[0]], MIN_SPACING/2.0)
+    meshpts += vertices_to_meshpts
 
+    # Now normal algo
+    msrftmp = MatrixSurface(np.array([np.array(v) for v in curve]))
+
+    split_curve = MatrixUtils.split_curve_by_distance(msrftmp.vertices_loop, MIN_SPACING)
+    msrf = MatrixSurface(np.array([np.array(v) for v in split_curve]))
+
+
+    #print('vertices')
+    #pp(msrf.vertices)
+    #print(data_lst["note"])
     # we need edges and midpts
     edges = msrf.edges
     midpts = msrf.midpts
@@ -36,14 +58,17 @@ def project_points_to_line(interface):
         edge_norm = MatrixUtils.to2d(norms[ei])
         edge_midpt = MatrixUtils.to2d(midpts[ei])
 
+        min_dist_meshpt = float("inf")
+        min_meshpt = None
+
         for mi,meshpt_ in enumerate(meshpts):
             # check direction
             meshpt = MatrixUtils.to2d(np.array(meshpt_))
             mesh_vec = meshpt - edge_midpt
             costheta = np.dot(MatrixUtils.unitize(edge_norm), MatrixUtils.unitize(mesh_vec))
 
+            # check if is perpendicular to edge
             if costheta > 0.0:
-                # is iwthin dist
                 edgept1 = MatrixUtils.to2d(edge[0])
                 edgept2 = MatrixUtils.to2d(edge[1])
 
@@ -63,29 +88,44 @@ def project_points_to_line(interface):
 
                 dist_x = costheta  * np.linalg.norm(mesh_vec)
                 within_x_dist = dist_x < max_x_dist
-                within_y_dist = dist_y <= 3.0
+                within_y_dist = dist_y <= DIST_TOL
 
                 if within_x_dist and within_y_dist:
-                    # move meshpt_ along normal back by h
-                    proj_vec = -dist_y * norms[ei]
-                    proj_pt = proj_vec + np.array(meshpt_)
-                    close_pts[ei].append(proj_pt)
-                    #ghclose.append(proj_pt.tolist())
+                    if dist_y < min_dist_meshpt:
+                        # move meshpt_ along normal back by h
+                        proj_vec = -dist_y * norms[ei]
+                        proj_pt = proj_vec + np.array(meshpt_)
+
+                        min_dist_meshpt = dist_y
+                        min_meshpt = proj_pt
+                        #close_pts[ei].append(proj_pt)
+                        #ghclose.append(list(meshpt_))
+                        #ghclose.append(proj_pt.tolist())
+
+        if min_meshpt is not None:
+            close_pts[ei].append(min_meshpt)
 
     # sort pts by distance
-    projected_points = []#close_pts#[None] * len(reduce(lambda a,b: a+b, close_pts))
+    projected_points = []
+
+    pp(close_pts)
+    def flat_dist(p):
+        print(p)
+        return np.linalg.norm(MatrixUtils.to2d(p) - MatrixUtils.to2d(refpt))
+
     #ppl(close_pts)
     ghclose = []
     for ei, edgepts in enumerate(close_pts):
-        refpt = edges[ei][0]
-        flat_dist = lambda p: np.linalg.norm(MatrixUtils.to2d(p) - MatrixUtils.to2d(refpt))
-        sorted_by_dist = sorted(close_pts[ei], key = flat_dist)
-        refht_1 = sorted_by_dist[0].tolist()[2]
-        refht_2 = sorted_by_dist[-1].tolist()[2]
+        #print(ei, len(edgepts))
+        if not is_near_zero(len(edgepts)):
+            refpt = edges[ei][0]
+            sorted_by_dist = sorted(close_pts[ei], key = flat_dist)
+            print('---')
+            refht_1 = sorted_by_dist[0].tolist()[2]
+            newedge1 = np.array([edges[ei][0][0], edges[ei][0][1], refht_1])
 
-        newedge1 = np.array([edges[ei][0][0], edges[ei][0][1], refht_1])
-        projected_points.append(newedge1)
-        projected_points.extend(sorted_by_dist)
+            #projected_points.append(newedge1)
+            projected_points.extend(sorted_by_dist)
 
     ghclose = [p.tolist() for p in projected_points]
 
@@ -110,26 +150,26 @@ def project_points_to_line(interface):
     numerator = np.dot(grade_x_array, grade_y_array)
     denominator = np.dot(grade_y_array, np.ones(len(projected_points)-1))
 
-    weighted_avg = 47.0#float(numerator/denominator)
+    weighted_avg = float(numerator/denominator)
     #print(weighted_avg)
+
     # Send to GH
     midpts = MatrixUtils.makelists(midpts)
     norms = MatrixUtils.makelists(norms)
     closepts = ghclose
-    D = {}
-    D["norm"] = norms
-    D["mpts"] = midpts
+
+
+    #D["norm"] = norms
+    #D["mpts"] = midpts
     D["closepts"] = closepts
-    D["number"] = weighted_avg
+    #D["number"] = weighted_avg
     interface.send(D)
 
-    return projected_points
+    print("Calculated!")
 
 if __name__ == "__main__":
 
     # interface
     interface = Cache()
     interface.set_listeners()
-    data_lst = project_points_to_line(interface)
-
-    print("Success!", type(data_lst))
+    project_points_to_line(interface)

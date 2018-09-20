@@ -79,7 +79,7 @@ class MatrixUtils(object):
         b = np.linalg.norm(p2 - p1)
         A = abs(np.cross(edge_vec1, edge_vec2)/2.)
         h = 2*A / b
-        
+
 
         return h
 
@@ -364,3 +364,31 @@ class MatrixUtils(object):
         norm = MatrixUtils.normal_from_vertices((dirvec, unitz))
 
         return norm
+
+    @classmethod
+    def split_curve_by_distance(cls, vertices_loop, min_dist):
+        """ Splits ccw array/list of vertices by a minmumn distance
+            Returns a list of vertices in new list
+        """
+        new_vertices = []
+
+        for i in range(len(vertices_loop)-1):
+            v1 = vertices_loop[i]
+            v2 = vertices_loop[i+1]
+
+            new_vertices.append(v1)
+
+            dist = np.linalg.norm(v2-v1)
+            if dist > min_dist:
+                subdivs = int(dist/min_dist)
+                vdir = cls.unitize(v2-v1)
+                for j in range(subdivs-1):
+                    inc_dist = (j+1) * min_dist
+                    new_v = v1 + vdir * inc_dist
+                    new_vertices.append(new_v)
+
+            new_vertices.append(v2)
+
+        new_vertices.pop(-1)
+
+        return new_vertices
