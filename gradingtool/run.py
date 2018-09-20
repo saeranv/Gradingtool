@@ -111,7 +111,6 @@ def project_points_to_line(interface):
 
     #pp(close_pts)
     def flat_dist(p):
-        print(p)
         return np.linalg.norm(MatrixUtils.to2d(p) - MatrixUtils.to2d(refpt))
 
     #ppl(close_pts)
@@ -121,7 +120,7 @@ def project_points_to_line(interface):
         if not is_near_zero(len(edgepts)):
             refpt = edges[ei][0]
             sorted_by_dist = sorted(close_pts[ei], key = flat_dist)
-            print('---')
+            # print('---')
             refht_1 = sorted_by_dist[0].tolist()[2]
             newedge1 = np.array([edges[ei][0][0], edges[ei][0][1], refht_1])
 
@@ -169,7 +168,7 @@ def project_points_to_line(interface):
     #D["norm"] = norms
     #D["mpts"] = midpts
     D["closepts"] = closepts
-    #D["number"] = weighted_avg
+    D["number"] = weighted_avg
     interface.send(D)
 
     print("Calculated!")

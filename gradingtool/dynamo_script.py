@@ -9,6 +9,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 sys.path.append(r"C:\Program Files (x86)\IronPython 2.7\Lib")
+sys.path = sorted(sys.path, key=lambda p: p.find("Python27"))
 
 import math
 import uuid
@@ -18,6 +19,13 @@ import os
 import subprocess
 import getpass
 import System
+
+try:
+    System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12
+except AttributeError:
+    # TLS 1.2 not provided by MacOS .NET Core; revert to using TLS 1.0
+    System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls
+
 
 def download_file(url, targetDirectory):
     print targetDirectory
@@ -93,9 +101,9 @@ def set_directory_structure(update_tool, cache_dir_parent, pkg_name, url):
 
 def run_python_process(p, program, argument, working_directory):
     argstr = ""
-    #print program
-    #print argument
-    #print working_directory
+    print program
+    print argument
+    print working_directory
     PIPE = subprocess.PIPE
     STDOUT = subprocess.STDOUT
     p = subprocess.Popen([program, argument, argstr], cwd=working_directory, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
@@ -106,6 +114,8 @@ def run_python_process(p, program, argument, working_directory):
 
     if exitcode != 0:
         print "Command failed with return code", exitcode
+
+    #script_output = program + argument + working_directory
 
     return p, script_output, exitcode
 
@@ -161,17 +171,18 @@ def main(p, topo_pts, topo_crv, bldg_crv, anaconda_path, update_tool = False):
     boundpts = None
     number = None
 
+
     if not os.path.isdir(anaconda_path):
         user_name = getpass.getuser()
         anaconda_path = "C:\\Users\\{}\\AppData\\Local\\Continuum\\miniconda2\\".format(user_name)
-    
+
     if not os.path.isdir(anaconda_path):
         where_path = "Cannot find path to mininaconda at {}.".format(anaconda_path)
         raise Exception( where_path +
                         " It is usually found in C:\Users\%USERNAME%\AppData\Local\Continuum\miniconda2. "
                         "Try inputting it manually")
-        return msg, boundpts, number
-    
+
+
     # Find/make all these
     program = os.path.join(anaconda_path, "python.exe")
     pkg_name = "Gradingtool"
@@ -202,8 +213,16 @@ def main(p, topo_pts, topo_crv, bldg_crv, anaconda_path, update_tool = False):
     # Run run.py
     argument = os.path.join(package_path, pkg_name.lower(), "run.py")
     working_directory = package_path
+
     p, std_out, exit_code = run_python_process(p, program, argument, working_directory)
     msg = std_out
+
+    # hack
+    if exit_code != 0:
+        # hack
+        program_anaconda = os.path.join(anaconda_path.replace("miniconda2", "Anaconda2"), "python.exe")
+        p, std_out, exit_code = run_python_process(p, program_anaconda, argument, working_directory)
+        msg = std_out
 
     if exit_code != 0:
         return p, None, None, msg
@@ -219,12 +238,12 @@ def main(p, topo_pts, topo_crv, bldg_crv, anaconda_path, update_tool = False):
     return p, boundpts, number, msg
 
 # Rename inputs
-update_ = IN[0]
-anaconda_path_ = IN[1]
-_topo_pts = IN[2]
-_topo_crv = IN[3]
-_bldg_crv = IN[4]
-_run = IN[5]
+update_ = False
+anaconda_path_ = ""
+_run = IN[0]
+_topo_pts = IN[1]
+_topo_crv = IN[2]
+_bldg_crv = IN[3]
 
 p = None
 
