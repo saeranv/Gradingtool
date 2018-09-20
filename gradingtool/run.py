@@ -18,8 +18,8 @@ def project_points_to_line(interface):
     D["closepts"] = []
     D["number"] = None
 
-    DIST_TOL = 55.0 * 1000.0
-    MIN_SPACING = 1.0 * 1000.0
+    DIST_TOL = D["perpendicular_dist"] * 1000.0     # 55.0 * 1000.0
+    MIN_SPACING = D["spacing_dist"] * 1000.0        # 1.0 * 1000.0
 
     data_lst = interface.recieve()
     curve = data_lst["curves"]

@@ -166,7 +166,7 @@ def py2rvt(pypt):
         return XYZ(pypt[0],pypt[1],pypt[2])
 
 
-def main(p, topo_pts, topo_crv, bldg_crv, anaconda_path, update_tool = False):
+def main(p, topo_pts, topo_crv, bldg_crv, anaconda_path, perpendicular_dist, spacing_dist, update_tool = False):
     msg = "Script didn't run."
     boundpts = None
     number = None
@@ -208,6 +208,9 @@ def main(p, topo_pts, topo_crv, bldg_crv, anaconda_path, update_tool = False):
     D["curves"] = bldg_crvpts
     D["points"] = topo_pts
     D["topocrvs"] = topo_crvpts
+    D["perpendicular_dist"] = perpendicular_dist
+    D["spacing_dist"] = spacing_dist
+
     cachefpath = pickle(D, pkg_cache_dir, cache_gh_pklname)
 
     # Run run.py
@@ -244,11 +247,13 @@ _run = IN[0]
 _topo_pts = IN[1]
 _topo_crv = IN[2]
 _bldg_crv = IN[3]
+_perp_dist = IN[4]
+_space_dist = IN[5]
 
 p = None
 
 if _run:
-    result = main(p, _topo_pts, _topo_crv, _bldg_crv, anaconda_path_, update_tool = update_)
+    result = main(p, _topo_pts, _topo_crv, _bldg_crv, anaconda_path_, _perp_dist, _space_dist, update_tool = update_)
     p, boundpts, grade_avg, msg = result
 
     OUT = [msg, grade_avg, boundpts]
