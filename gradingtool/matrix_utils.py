@@ -387,7 +387,7 @@ class MatrixUtils(object):
                     new_v = v1 + vdir * inc_dist
                     new_vertices.append(new_v)
 
-            new_vertices.append(v2)
+            #new_vertices.append(v2) # don't need this as new v1 will be same
 
         new_vertices.pop(-1)
 
