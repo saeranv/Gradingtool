@@ -25,11 +25,12 @@ def project_points_to_line(interface):
     curve = data_lst["curves"]
     meshpts = data_lst["points"]
 
-    # Adding path curves to meshpts
+    # Adding path curves to meshpts if exists
     curve_to_meshpts = data_lst["topocrvs"]
-    vertices_to_meshpts = [np.array(v) for v in curve_to_meshpts]
-    vertices_to_meshpts = MatrixUtils.split_curve_by_distance(vertices_to_meshpts + [vertices_to_meshpts[0]], MIN_SPACING/2.0)
-    meshpts += vertices_to_meshpts
+    if curve_to_meshpts != [] or curve_to_meshpts != [None]:
+        vertices_to_meshpts = [np.array(v) for v in curve_to_meshpts]
+        vertices_to_meshpts = MatrixUtils.split_curve_by_distance(vertices_to_meshpts + [vertices_to_meshpts[0]], MIN_SPACING/2.0)
+        meshpts += vertices_to_meshpts
 
     # Now normal algo
     msrftmp = MatrixSurface(np.array([np.array(v) for v in curve]))
@@ -108,7 +109,7 @@ def project_points_to_line(interface):
     # sort pts by distance
     projected_points = []
 
-    pp(close_pts)
+    #pp(close_pts)
     def flat_dist(p):
         print(p)
         return np.linalg.norm(MatrixUtils.to2d(p) - MatrixUtils.to2d(refpt))
@@ -133,6 +134,9 @@ def project_points_to_line(interface):
     # weighted length average method
     grade_x_array, grade_y_array = np.zeros(len(projected_points)-1), np.zeros(len(projected_points)-1)
 
+    weighted_y = 0
+    total_length = 0
+
     for pi in range(len(projected_points) - 1):
         v1, v2 = projected_points[pi], projected_points[pi + 1]
         slope_vector = (v2 - v1)
@@ -144,13 +148,16 @@ def project_points_to_line(interface):
         grade_y = sintheta * np.linalg.norm(slope_vector)
         grade_x = np.linalg.norm(edge_vector)
 
-        grade_x_array[pi] = grade_x
-        grade_y_array[pi] = grade_y
+        #grade_x_array[pi] = grade_x
+        #grade_y_array[pi] = grade_y
 
-    numerator = np.dot(grade_x_array, grade_y_array)
-    denominator = np.dot(grade_y_array, np.ones(len(projected_points)-1))
+        weighted_y += v1[2]*grade_x if v1[2] > v2[2] else v2[2]*grade_x
+        total_length += grade_x
 
-    weighted_avg = float(numerator/denominator)
+    #numerator = np.dot(grade_x_array, grade_y_array)
+    #denominator = np.dot(grade_y_array, np.ones(len(projected_points)-1))
+
+    weighted_avg = float(weighted_y / total_length) #float(numerator/denominator)
     #print(weighted_avg)
 
     # Send to GH
