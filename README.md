@@ -1,4 +1,4 @@
-##Installation Instructions
+## Installation Instructions
 
 1. Open the installer.gh file and click true to update. This will download the latest code from github.
 
