@@ -3,13 +3,13 @@ import sys
 import os
 
 import math
-import pandas as pd
+#import pandas as pd
 import numpy as np
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 #plt.style.use('dark_background')
 
-import itertools as it
+#import itertools as it
 #print list(imap(lambda x: x * x, xrange(10)))
 
 import pprint
