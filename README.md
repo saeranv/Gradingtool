@@ -1,8 +1,14 @@
-Installation:
+##Installation Instructions
 
-Open .gh file and click update. 
+1. Open the installer.gh file and click true to update. This will download the latest code from github.
 
-If you need to install numpy manually go into your Command Prompt and type:
+2. Download python and numpy via miniconda. 
+You'll only have to do this once. Go here https://conda.io/miniconda.html and download the Python 2.7 installer.  
+
+3. Open your command prompt and type: 
 `conda install numpy`
 
-Now the tool should work in dynamo. 
+When prompted type: 
+`y` 
+
+4. Open the .dy file in dynamo. Everything should work. 
