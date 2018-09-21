@@ -234,9 +234,8 @@ def main(p, topo_pts, topo_crv, bldg_crv, anaconda_path, perpendicular_dist, spa
     D = unpickle(pkl_file)
     boundpts = D["closepts"]
     number = D["number"]
-    #boundpts = [xyz.ToXyz()for xyz in py2rvt(boundpts)]
+    # boundpts = [xyz.ToXyz()for xyz in py2rvt(boundpts)]
     boundpts = py2rvt(boundpts)
-
 
     return p, boundpts, number, msg
 
