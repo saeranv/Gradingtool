@@ -156,7 +156,7 @@ def project_points_to_line(interface):
     #numerator = np.dot(grade_x_array, grade_y_array)
     #denominator = np.dot(grade_y_array, np.ones(len(projected_points)-1))
 
-    weighted_avg = np.mean([pp[2] for pp in projecte_points])#float(weighted_y / total_length) #float(numerator/denominator)
+    weighted_avg = np.mean([pp[2] for pp in projected_points])#float(weighted_y / total_length) #float(numerator/denominator)
     #print(weighted_avg)
 
     # Send to GH
