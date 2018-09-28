@@ -136,7 +136,7 @@ def project_points_to_line(interface):
     weighted_y = 0
     total_length = 0
 
-    for pi in range(len(projected_points)):
+    for pi in range(len(projected_points) - 1):
         v1, v2 = projected_points[pi], projected_points[pi + 1]
         slope_vector = (v2 - v1)
 
