@@ -35,7 +35,7 @@ def project_points_to_line(interface):
     # Now normal algo
     msrftmp = MatrixSurface(np.array([np.array(v) for v in curve]))
 
-    split_curve = MatrixUtils.split_curve_by_distance(msrftmp.vertices_loop, MIN_SPACING)
+    split_curve = MatrixUtils.split_curve_loop_by_distance(msrftmp.vertices_loop, MIN_SPACING)
     msrf = MatrixSurface(np.array([np.array(v) for v in split_curve]))
 
 
