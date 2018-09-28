@@ -29,7 +29,7 @@ def project_points_to_line(interface):
     curve_to_meshpts = data_lst["topocrvs"]
     if curve_to_meshpts != [] or curve_to_meshpts != [None]:
         vertices_to_meshpts = [np.array(v) for v in curve_to_meshpts]
-        vertices_to_meshpts = MatrixUtils.split_curve_by_distance(vertices_to_meshpts + [vertices_to_meshpts[0]], MIN_SPACING/2.0)
+        vertices_to_meshpts = MatrixUtils.split_curve_loop_by_distance(vertices_to_meshpts + [vertices_to_meshpts[0]], MIN_SPACING/2.0)
         meshpts += vertices_to_meshpts
 
     # Now normal algo
