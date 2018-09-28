@@ -178,7 +178,7 @@ def project_points_to_line(interface):
 
     #D["norm"] = norms
     #D["mpts"] = midpts
-    D["closepts"] = projected_points
+    D["closepts"] = MatrixUtils.makelists(projected_points)
     D["number"] = weighted_avg
     interface.send(D)
 
