@@ -379,7 +379,7 @@
     {
       "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
       "NodeType": "BooleanInputNode",
-      "InputValue": false,
+      "InputValue": true,
       "Id": "b658e98f8d3f4fa6ad2e950ececc33df",
       "Inputs": [],
       "Outputs": [
@@ -882,7 +882,7 @@
       "ConcreteType": "CoreNodeModels.Input.DoubleInput, CoreNodeModels",
       "NodeType": "NumberInputNode",
       "NumberType": "Double",
-      "InputValue": 35.0,
+      "InputValue": 10.0,
       "Id": "c2896c560bf644b696bed641d73672d8",
       "Inputs": [],
       "Outputs": [
@@ -903,7 +903,7 @@
       "ConcreteType": "CoreNodeModels.Input.DoubleInput, CoreNodeModels",
       "NodeType": "NumberInputNode",
       "NumberType": "Double",
-      "InputValue": 5.0,
+      "InputValue": 10.0,
       "Id": "c113a854d4e24036b3fad6e54baa29ed",
       "Inputs": [],
       "Outputs": [
@@ -1161,6 +1161,401 @@
       ],
       "Replication": "Auto",
       "Description": "Construct a Polygon Curve by connecting Points.\n\nPolygon.ByPoints (points: Point[]): Polygon"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "# Enable Python support and load DesignScript library\r\nimport clr\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\nclr.AddReference('RevitAPI') #import clr\r\nfrom Autodesk.Revit.DB import *\r\n\r\nimport sys\r\nreload(sys)\r\nsys.setdefaultencoding('utf-8')\r\nsys.path.append(r\"C:\\Program Files (x86)\\IronPython 2.7\\Lib\")\r\nsys.path = sorted(sys.path, key=lambda p: p.find(\"Python27\"))\r\n\r\nimport math\r\nimport uuid\r\nimport cPickle\r\nimport zipfile\r\nimport os\r\nimport subprocess\r\nimport getpass\r\nimport System\r\n\r\ntry:\r\n    System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12\r\nexcept AttributeError:\r\n    # TLS 1.2 not provided by MacOS .NET Core; revert to using TLS 1.0\r\n    System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls\r\n\r\n\r\n\r\ndef download_file(url, targetDirectory):\r\n    localFilePath = os.path.join(targetDirectory, os.path.basename(url))\r\n    client = System.Net.WebClient()\r\n    client.DownloadFile(url, localFilePath)\r\n    return localFilePath\r\n\r\ndef check_or_make_directory(dir_path):\r\n    if not os.path.isdir(dir_path):\r\n        try:\r\n            os.mkdir(dir_path)\r\n        except:\r\n            raise Exception(\"Folder can't be constructed: '{}' can't be made.\".format(dir_path))\r\n\r\ndef unzip_file(zipFile, targetDirectory):\r\n    #unzip the file\r\n    with zipfile.ZipFile(zipFile) as zf:\r\n        for f in zf.namelist():\r\n            if f.endswith('/'):\r\n                try: os.makedirs(f)\r\n                except: pass\r\n            else:\r\n                zf.extract(f, targetDirectory)\r\n\r\ndef del_directory(dir, rmdir = True):\r\n    try:\r\n        if dir[-1] == os.sep: dir = dir[:-1]\r\n        files = os.listdir(dir)\r\n        for file in files:\r\n            if file == '.' or file == '..': continue\r\n            path = dir + os.sep + file\r\n            if os.path.isdir(path):\r\n                del_directory(path)\r\n            else:\r\n                os.unlink(path)\r\n        if rmdir: os.rmdir(dir)\r\n    except:\r\n        print \"Delete old directory failed\"\r\n\r\n\r\ndef set_directory_structure(update_tool, cache_dir_parent, pkg_name, url):\r\n    \"\"\"\r\n    Makes directory to store cache files if it doesn't exist.\r\n    Copies python package over from git.\r\n    \"\"\"\r\n\r\n    # cache directory\r\n    cache_dir = r\"kt_cpython_cache\"\r\n    cache_path = os.path.join(cache_dir_parent, cache_dir)\r\n\r\n    # pkg directory\r\n    pkg_parent_path = os.path.join(cache_path, pkg_name)\r\n    pkg_path = os.path.join(pkg_parent_path, pkg_name + \"-master\")\r\n\r\n\r\n    # if package exists\r\n    if os.path.isdir(pkg_path):\r\n        # delete pkg_path if you want to update\r\n        if update_tool == True:\r\n            del_directory(pkg_parent_path, rmdir = True)\r\n            print \"Deleting \", pkg_path\r\n\r\n    # Check again if package doesn't exists, download from repo\r\n    if not os.path.isdir(pkg_path):\r\n            # cache directory\r\n            check_or_make_directory(cache_path)\r\n            # pacakge parent directory\r\n            check_or_make_directory(pkg_parent_path)\r\n\r\n            # download pkg zip\r\n            zip_file_path = download_file(url, pkg_parent_path)\r\n            print \"Downloading the source code...\"\r\n\r\n            # unzip pkg\r\n            unzip_file(zip_file_path, pkg_parent_path)\r\n\r\n            print \"Downloaded!\"\r\n\r\n    #run_bat_file(pkg_path)\r\n\r\n    return pkg_path\r\n\r\ndef run_bat_file(directory = \"C:/\"):\r\n    directory = 'C:/'\r\n    batfpath = os.path.join(directory, 'python_packages.bat')\r\n    with open(batfpath, 'w') as OPATH:\r\n        OPATH.writelines(['conda install numpy\\n','y\\n','pause'])\r\n\r\n    run_python_process(batfpath, directory)\r\n\r\n\r\ndef run_python_process(p, program, working_directory, argument = \"\", argstr = \"\"):\r\n    #print program\r\n    #print argument\r\n    #print working_directory\r\n    PIPE = subprocess.PIPE\r\n    STDOUT = subprocess.STDOUT\r\n    p = subprocess.Popen([program, argument, argstr], cwd=working_directory, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)\r\n    #print p.communicate()\r\n    script_output = p.stdout.read()\r\n    print script_output\r\n\r\n\r\ndef main(anaconda_path, update_tool = False):\r\n    if anaconda_path is None:\r\n        user_name = getpass.getuser()\r\n        anaconda_path = \"C:\\\\Users\\\\{}\\\\AppData\\\\Local\\\\Continuum\\\\miniconda2\\\\\".format(user_name)\r\n\r\n    if not os.path.isdir(anaconda_path):\r\n        raise Exception(\"Cannot find path to Anaconda. It is usually found in C:\\Users\\%USERNAME%\\AppData\\Local\\Continuum\\miniconda2. Try inputting it manually\")\r\n        return\r\n\r\n    # Find/make all these\r\n    program = os.path.join(anaconda_path, \"python.exe\")\r\n    pkg_name = \"Gradingtool\"\r\n    pkg_url = \"https://github.com/saeranv/{}/archive/master.zip\".format(pkg_name)\r\n\r\n    cache_dir_parent = os.path.join(anaconda_path, \"pkgs\")\r\n    cache_gh_pklname = \"listen_app.pkl\"\r\n    cache_app_pklname = \"listen_gh.pkl\"\r\n\r\n    package_path = set_directory_structure(update_tool, cache_dir_parent, pkg_name, pkg_url)\r\n    pkg_cache_dir = os.path.join(package_path, \"cache\")\r\n\r\n\r\n    return 'Success'\r\n\r\nanaconda_path_ = IN[1]\r\nupdate_ = IN[0]\r\n\r\nif IN[0] == True:\r\n    if anaconda_path_ == \"\": anaconda_path_ = None\r\n    result = main(None, update_tool = update_)\r\n    OUT = result",
+      "VariableInputPorts": true,
+      "Id": "bfd8d254a8714147b81115c7ebfea5a5",
+      "Inputs": [
+        {
+          "Id": "fd60dc394c6c4aae9666eecbb55fcbac",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "c7fe272ae0404308aeee82de0505cb59",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5c8a92b334ac4455a3718ebc1dff09ad",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "3959e99c4d8e4688ba50c1ccf093fa2e",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "961835897653404ba27b00974b0e8805",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "82410959937f4754afb4d06016016a63",
+      "Inputs": [
+        {
+          "Id": "a35b525f30204a59834a25e6fdf39284",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "94aa0735acd44f7682fcb6ac2ccfe220",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "NodeType": "StringInputNode",
+      "InputValue": "\"\"",
+      "Id": "d2831a9be8fd44d6bbf5870c9eaee35b",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "b56822d452184977b4b87193131337af",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a string."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "# Enable Python support and load DesignScript library\r\nimport clr\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\npts = IN[0]\r\nzlst = [pt.Z for pt in pts]\r\nOUT = sorted(zlst)[0]/1000.0",
+      "VariableInputPorts": true,
+      "Id": "1549e08d4041455c9c5fdabe46c36f90",
+      "Inputs": [
+        {
+          "Id": "3e9274089bd346bc97c64f8accde0002",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5ab1f4b654d14fafa9718f947867efd7",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "# Enable Python support and load DesignScript library\r\nimport clr\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\n\r\nL = []\r\nLOWPTZ = IN[1]\r\nREFHT = IN[2]\r\ngpa = IN[0]\r\n\r\nOUT = (gpa - LOWPTZ + REFHT)",
+      "VariableInputPorts": true,
+      "Id": "9a407e67b9b9487bb06280ee05c6f185",
+      "Inputs": [
+        {
+          "Id": "9f00bb9dd3d44371a045091fcc052e8b",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "0c0a3e7228f345ee9f8b54100a749609",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "0878e191b0ec4c2b91bc9cd1c838d3c5",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "da62afcbf72848c6bb36bccec624112c",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "aedd83cce8974795b845e298f4694422",
+      "Inputs": [
+        {
+          "Id": "b897aa142a8a40e88053782bcbe994e2",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "893d2b8b6fe04271bbf3e2eed6cf97a3",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "117.23;",
+      "Id": "9ca1c0b9fdbf4fb5b346218b176dbea1",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "e882d699be5e4131b9b15af5095da6fa",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Function, DynamoCore",
+      "FunctionSignature": "46a3a667-ec7a-49ed-8675-ed77333ecd8e",
+      "FunctionType": "Graph",
+      "NodeType": "FunctionNode",
+      "Id": "7700cdf381b74ae48179cb2cecfe07b7",
+      "Inputs": [
+        {
+          "Id": "1c326f540dee488b9f5080e0ae2bff58",
+          "Name": "input",
+          "Description": "var[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "83f0192d5f0a499cbf3cfb34b9019ffa",
+          "Name": "addIndexes",
+          "Description": "bool\nDefault value : true",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "fc75cd1c58cd4af9b17fdfec09f02672",
+          "Name": "reset",
+          "Description": "bool\nDefault value : true",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "0b4dce7c7e25400dbe3d2a749c9877ea",
+          "Name": "str",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "This node that serializes the input information and presents it in a resizable text window."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.Math.Average@double[]",
+      "Id": "3cf4b5b51eea4a898349c507fbe7e40c",
+      "Inputs": [
+        {
+          "Id": "7de13b85a24a4d36bba5670c9488eb81",
+          "Name": "numbers",
+          "Description": "List of numbers to be averaged.\n\ndouble[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "59628490b87a4c8ea9e6a0911bdcdbdc",
+          "Name": "average",
+          "Description": "Average of the list of numbers.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Averages a list of numbers.\n\nMath.Average (numbers: double[]): double"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "139c0088c09e46d8b02912f860d6d98f",
+      "Inputs": [
+        {
+          "Id": "d25b7e200992457fbdc412be283cec98",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "cec577d5a18a4a45ba6bfe1794631710",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "# Enable Python support and load DesignScript library\r\nimport clr\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\n\r\n# The inputs to this node will be stored as a list in the IN variables.\r\ndataEnteringNode = IN\r\n\r\n# Place your code below this line\r\n\r\n# Assign your output to the OUT variable.\r\nOUT = [x/1000.0 - IN[1] + IN[2] for x in IN[0]]",
+      "VariableInputPorts": true,
+      "Id": "fdddce30b2ab4a47b43c0df16bdd90c2",
+      "Inputs": [
+        {
+          "Id": "0494a58620e146e48e29a9c54478999c",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "45137f14d39b415a8983051aa461b76d",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "6f2c0744dfee4ec283e5400605e8a5f8",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "6fc3e66da4f0489bb5688551130f5fd7",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
     }
   ],
   "Connectors": [
@@ -1300,6 +1695,11 @@
       "Id": "168957f2e3644e5084e3fbd646e3cfa7"
     },
     {
+      "Start": "33c711fd03e748659f3d5807a22219d2",
+      "End": "0494a58620e146e48e29a9c54478999c",
+      "Id": "15f3ee0aa4124960b9356364128ae5aa"
+    },
+    {
       "Start": "3aed618542a44d729c6f01f580353ba7",
       "End": "638af41625b8462fae6b550713d1c941",
       "Id": "667cfff960cd4820b5c1cd048016fc96"
@@ -1310,6 +1710,11 @@
       "Id": "2a12d9b99bd04103a03aa769f22425f1"
     },
     {
+      "Start": "e60e4c720c8f4d8a80c26d5da4ca622f",
+      "End": "3e9274089bd346bc97c64f8accde0002",
+      "Id": "d429a9a4b9804f9e82a3571323936e92"
+    },
+    {
       "Start": "c9fc388662d842149d711e142e0530e0",
       "End": "7ea2ce70a9de44febf6a835016f90dc9",
       "Id": "c0bdc29c210045ccbc76cc7961a4aae7"
@@ -1318,6 +1723,11 @@
       "Start": "d43a2f4e745a4e2b9e562be1489c486c",
       "End": "4879e18a72e5479ebbf2edea39994a9c",
       "Id": "5daa7f858e1a4bd2b6a2c986da6f4751"
+    },
+    {
+      "Start": "88e8041a54604ff8ba375b9cfd5662a0",
+      "End": "9f00bb9dd3d44371a045091fcc052e8b",
+      "Id": "3ac76c1c798d46cab6b901de82a5ee53"
     },
     {
       "Start": "eb5894cace8548d29b69512620ade706",
@@ -1353,9 +1763,61 @@
       "Start": "691dbc9519e14bd789c556455f4c96d5",
       "End": "f2a3ff36976f4cc5bb95473827fd4eeb",
       "Id": "f58bd1152949452e8036882071e8e926"
+    },
+    {
+      "Start": "5c8a92b334ac4455a3718ebc1dff09ad",
+      "End": "a35b525f30204a59834a25e6fdf39284",
+      "Id": "9155ff99a18a4edb9d19ee69b3dcccd5"
+    },
+    {
+      "Start": "961835897653404ba27b00974b0e8805",
+      "End": "fd60dc394c6c4aae9666eecbb55fcbac",
+      "Id": "3a2d704c057f4ae2a49add0b219874be"
+    },
+    {
+      "Start": "b56822d452184977b4b87193131337af",
+      "End": "c7fe272ae0404308aeee82de0505cb59",
+      "Id": "00fa5092422f4ce29054553d58444307"
+    },
+    {
+      "Start": "5ab1f4b654d14fafa9718f947867efd7",
+      "End": "0c0a3e7228f345ee9f8b54100a749609",
+      "Id": "2febba7e954c4388a9f3f1dbe416bb16"
+    },
+    {
+      "Start": "5ab1f4b654d14fafa9718f947867efd7",
+      "End": "45137f14d39b415a8983051aa461b76d",
+      "Id": "16bacd56d52b4727a292b2197b6c29ba"
+    },
+    {
+      "Start": "da62afcbf72848c6bb36bccec624112c",
+      "End": "b897aa142a8a40e88053782bcbe994e2",
+      "Id": "a341a7bccaba4200babdb1a3c61ed172"
+    },
+    {
+      "Start": "e882d699be5e4131b9b15af5095da6fa",
+      "End": "0878e191b0ec4c2b91bc9cd1c838d3c5",
+      "Id": "b77d9a704cba404eae356ea8510b1d79"
+    },
+    {
+      "Start": "e882d699be5e4131b9b15af5095da6fa",
+      "End": "6f2c0744dfee4ec283e5400605e8a5f8",
+      "Id": "14d69e283f3c4d2e9875661cb02ca140"
+    },
+    {
+      "Start": "59628490b87a4c8ea9e6a0911bdcdbdc",
+      "End": "d25b7e200992457fbdc412be283cec98",
+      "Id": "d4c4592b3e4f4b6bab7a6343c110ecdc"
+    },
+    {
+      "Start": "6fc3e66da4f0489bb5688551130f5fd7",
+      "End": "7de13b85a24a4d36bba5670c9488eb81",
+      "Id": "b74b5d6d8243410ab22d63f062f93360"
     }
   ],
-  "Dependencies": [],
+  "Dependencies": [
+    "46a3a667-ec7a-49ed-8675-ed77333ecd8e"
+  ],
   "Bindings": [],
   "View": {
     "Dynamo": {
@@ -1368,15 +1830,15 @@
     },
     "Camera": {
       "Name": "Background Preview",
-      "EyeX": 179113.44824015308,
-      "EyeY": 163154.00122858369,
-      "EyeZ": -198712.29734683831,
-      "LookX": -122240.56618318957,
-      "LookY": -89216.017637977435,
-      "LookZ": 105927.81066267533,
-      "UpX": -0.21463946627403743,
-      "UpY": 0.95881970482130463,
-      "UpZ": 0.18599625530634736
+      "EyeX": 77355.1628889585,
+      "EyeY": 83264.410797586839,
+      "EyeZ": -104710.54759898318,
+      "LookX": -20482.280831994984,
+      "LookY": -9326.4272069805884,
+      "LookZ": 11926.060914820191,
+      "UpX": -0.13667726094551635,
+      "UpY": 0.98741377501406391,
+      "UpZ": 0.079582014782698232
     },
     "NodeViews": [
       {
@@ -1400,14 +1862,14 @@
         "Y": 8.9221494636987018
       },
       {
-        "ShowGeometry": false,
+        "ShowGeometry": true,
         "Name": "Topography.Points",
         "Id": "2c556b02c4fa4f6fbcadabb78bfd3b82",
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 296.36811191885681,
-        "Y": -271.09666810043774
+        "X": 280.64075314889214,
+        "Y": -371.33749259395694
       },
       {
         "ShowGeometry": false,
@@ -1426,8 +1888,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 912.79068525418529,
-        "Y": -453.88105486854261
+        "X": 882.71888691318554,
+        "Y": -506.25669227782078
       },
       {
         "ShowGeometry": true,
@@ -1436,8 +1898,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": -356.22174140641039,
-        "Y": 254.3315827899886
+        "X": -316.75497425850438,
+        "Y": 85.940042958923186
       },
       {
         "ShowGeometry": false,
@@ -1466,8 +1928,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": -207.53617353288678,
-        "Y": -58.886957622827254
+        "X": -225.68846438734028,
+        "Y": -111.07479382938106
       },
       {
         "ShowGeometry": false,
@@ -1486,8 +1948,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 336.17244583126796,
-        "Y": -159.14153221110541
+        "X": 326.39132309861361,
+        "Y": -224.81478484464196
       },
       {
         "ShowGeometry": true,
@@ -1496,8 +1958,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 339.86137599669524,
-        "Y": -982.13889158275242
+        "X": 338.01510975160915,
+        "Y": -1005.2172196463304
       },
       {
         "ShowGeometry": true,
@@ -1506,8 +1968,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 1132.9044398627907,
-        "Y": -548.75739055093629
+        "X": 1139.8180946024509,
+        "Y": -568.7301709099537
       },
       {
         "ShowGeometry": true,
@@ -1566,7 +2028,7 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 2213.5405663502561,
+        "X": 2217.5819874009253,
         "Y": -640.1233522814457
       },
       {
@@ -1626,8 +2088,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 2075.963561035986,
-        "Y": -187.54100003614806
+        "X": 2763.2027749472136,
+        "Y": -46.206802954027154
       },
       {
         "ShowGeometry": true,
@@ -1636,8 +2098,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 1139.1456808536682,
-        "Y": -1057.3743103877212
+        "X": 1129.3222263419138,
+        "Y": -1297.9330054103141
       },
       {
         "ShowGeometry": true,
@@ -1656,8 +2118,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 312.84776800341956,
-        "Y": -898.04848872046614
+        "X": 299.00077116527291,
+        "Y": -903.58728745572478
       },
       {
         "ShowGeometry": true,
@@ -1666,8 +2128,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 328.46828947985989,
-        "Y": -818.40409964313153
+        "X": 324.77575698968747,
+        "Y": -829.48169711364892
       },
       {
         "ShowGeometry": true,
@@ -1746,13 +2208,133 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 2820.3982187858687,
-        "Y": -917.43469912965668
+        "X": 2820.39821878587,
+        "Y": -915.364132912942
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Updater",
+        "Id": "bfd8d254a8714147b81115c7ebfea5a5",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 782.44790848677223,
+        "Y": -1228.8198117570234
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "3959e99c4d8e4688ba50c1ccf093fa2e",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 544.82692163552224,
+        "Y": -1254.5992154873031
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "82410959937f4754afb4d06016016a63",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 950.29969164643569,
+        "Y": -1227.8936660021598
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "conda path",
+        "Id": "d2831a9be8fd44d6bbf5870c9eaee35b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 595.71631788902152,
+        "Y": -1185.35985688027
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Lowest Point",
+        "Id": "1549e08d4041455c9c5fdabe46c36f90",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 2783.8668161251903,
+        "Y": 78.457611578515639
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "9a407e67b9b9487bb06280ee05c6f185",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3130.5132465731122,
+        "Y": -30.28846067184611
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "aedd83cce8974795b845e298f4694422",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3355.5837994746989,
+        "Y": -27.836748362557842
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Add ref height for sea level here",
+        "Id": "9ca1c0b9fdbf4fb5b346218b176dbea1",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 2705.3118767219544,
+        "Y": 201.18310956008111
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Springs.Watch+",
+        "Id": "7700cdf381b74ae48179cb2cecfe07b7",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1122.1261601223162,
+        "Y": -833.6485161521033
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Math.Average",
+        "Id": "3cf4b5b51eea4a898349c507fbe7e40c",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3036.3628013887605,
+        "Y": -222.55936932351307
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "139c0088c09e46d8b02912f860d6d98f",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3340.3946763558215,
+        "Y": -229.65425586784625
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "fdddce30b2ab4a47b43c0df16bdd90c2",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 2792.8002336763593,
+        "Y": -219.48331414592269
       }
     ],
     "Annotations": [],
-    "X": 375.69421180602626,
-    "Y": 681.50193807582582,
-    "Zoom": 0.3524816721954187
+    "X": -1554.9566927413457,
+    "Y": 654.19123626123962,
+    "Zoom": 0.74599495600279842
   }
 }

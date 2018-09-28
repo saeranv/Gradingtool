@@ -365,8 +365,31 @@ class MatrixUtils(object):
 
         return norm
 
+     @classmethod
+    def split_curve_segment_by_distance(cls, v1, v2, min_dist):
+        """
+        :param v1:
+        :param v2:
+        :param min_dist:
+        :return:
+        """
+        new_vertices = [v1]
+
+        dist = np.linalg.norm(v2-v1)
+        if dist > min_dist:
+            subdivs = int(dist/min_dist)
+            vdir = cls.unitize(v2-v1)
+            for j in range(subdivs):
+                inc_dist = (j+1) * min_dist
+
+                if not is_near_zero(inc_dist, eps = 1e-3):
+                    new_v = v1 + vdir * inc_dist
+                    new_vertices.append(new_v)
+
+        return new_vertices
+
     @classmethod
-    def split_curve_by_distance(cls, vertices_loop, min_dist):
+    def split_curve_loop_by_distance(cls, vertices_loop, min_dist):
         """ Splits ccw array/list of vertices by a minmumn distance
             Returns a list of vertices in new list
         """
@@ -376,18 +399,9 @@ class MatrixUtils(object):
             v1 = vertices_loop[i]
             v2 = vertices_loop[i+1]
 
-            new_vertices.append(v1)
-
-            dist = np.linalg.norm(v2-v1)
-            if dist > min_dist:
-                subdivs = int(dist/min_dist)
-                vdir = cls.unitize(v2-v1)
-                for j in range(subdivs-1):
-                    inc_dist = (j+1) * min_dist
-                    new_v = v1 + vdir * inc_dist
-                    new_vertices.append(new_v)
-
-            #new_vertices.append(v2) # don't need this as new v1 will be same
+            new_curve_vertices = cls.split_curve_segment_by_distance(v1, v2, min_dist)
+            new_vertices.extend(new_curve_vertices)
+            # new_vertices.append(v2) # don't need this as new v1 will be same
 
         new_vertices.pop(-1)
 
