@@ -136,7 +136,7 @@ def project_points_to_line(interface):
     weighted_y = 0
     total_length = 0
 
-    for pi in range(len(projected_points) - 1):
+    for pi in range(len(projected_points)):
         v1, v2 = projected_points[pi], projected_points[pi + 1]
         slope_vector = (v2 - v1)
 
@@ -150,7 +150,7 @@ def project_points_to_line(interface):
         #grade_x_array[pi] = grade_x
         #grade_y_array[pi] = grade_y
 
-        weighted_y += v1[2]*grade_x if v1[2] > v2[2] else v2[2]*grade_x
+        weighted_y += v1[2]*grade_x
         total_length += grade_x
 
     #numerator = np.dot(grade_x_array, grade_y_array)

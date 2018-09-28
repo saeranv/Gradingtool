@@ -59,7 +59,7 @@ class Cache(object):
     @property
     def gh_listener(self):
         if self._gh_listener is None:
-            cache.set_listeners()
+            cache.set_listener()
         return self._gh_listener
 
     def send(self, v):
