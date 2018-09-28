@@ -903,7 +903,7 @@
       "ConcreteType": "CoreNodeModels.Input.DoubleInput, CoreNodeModels",
       "NodeType": "NumberInputNode",
       "NumberType": "Double",
-      "InputValue": 10.0,
+      "InputValue": 1.0,
       "Id": "c113a854d4e24036b3fad6e54baa29ed",
       "Inputs": [],
       "Outputs": [
@@ -1205,7 +1205,7 @@
     {
       "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
       "NodeType": "BooleanInputNode",
-      "InputValue": false,
+      "InputValue": true,
       "Id": "3959e99c4d8e4688ba50c1ccf093fa2e",
       "Inputs": [],
       "Outputs": [
@@ -1405,10 +1405,10 @@
       "FunctionSignature": "46a3a667-ec7a-49ed-8675-ed77333ecd8e",
       "FunctionType": "Graph",
       "NodeType": "FunctionNode",
-      "Id": "7700cdf381b74ae48179cb2cecfe07b7",
+      "Id": "926283b0f79c4091aca153a9885bd022",
       "Inputs": [
         {
-          "Id": "1c326f540dee488b9f5080e0ae2bff58",
+          "Id": "bcead1a112bc4a06bb6be4c9de6bc02b",
           "Name": "input",
           "Description": "var[]..[]",
           "UsingDefaultValue": false,
@@ -1417,7 +1417,7 @@
           "KeepListStructure": false
         },
         {
-          "Id": "83f0192d5f0a499cbf3cfb34b9019ffa",
+          "Id": "10e235e03a2e4e9ab05301437b8b6f9a",
           "Name": "addIndexes",
           "Description": "bool\nDefault value : true",
           "UsingDefaultValue": true,
@@ -1426,7 +1426,7 @@
           "KeepListStructure": false
         },
         {
-          "Id": "fc75cd1c58cd4af9b17fdfec09f02672",
+          "Id": "d60c961791104a61b12152d8838162ee",
           "Name": "reset",
           "Description": "bool\nDefault value : true",
           "UsingDefaultValue": true,
@@ -1437,7 +1437,7 @@
       ],
       "Outputs": [
         {
-          "Id": "0b4dce7c7e25400dbe3d2a749c9877ea",
+          "Id": "fe13840362b445d2a614bac8f0e35c4c",
           "Name": "str",
           "Description": "return value",
           "UsingDefaultValue": false,
@@ -1450,13 +1450,62 @@
       "Description": "This node that serializes the input information and presents it in a resizable text window."
     },
     {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "# Enable Python support and load DesignScript library\r\nimport clr\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\n\r\n# The inputs to this node will be stored as a list in the IN variables.\r\ndataEnteringNode = IN\r\n\r\n# Place your code below this line\r\n\r\n# Assign your output to the OUT variable.\r\nOUT = [x/1000.0 - IN[1] + IN[2] for x in IN[0]]",
+      "VariableInputPorts": true,
+      "Id": "fdddce30b2ab4a47b43c0df16bdd90c2",
+      "Inputs": [
+        {
+          "Id": "9d4aaf6b906446c2aaf81560b54d5e9a",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "3f3b2b7995aa4fd7b9bec5a45db47a3d",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "6b31d33d229841bab30e15b290b9b02b",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "6bb3165d9a824ff59db438773e3e60fe",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
       "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
       "NodeType": "FunctionNode",
       "FunctionSignature": "DSCore.Math.Average@double[]",
       "Id": "3cf4b5b51eea4a898349c507fbe7e40c",
       "Inputs": [
         {
-          "Id": "7de13b85a24a4d36bba5670c9488eb81",
+          "Id": "5e0e509c5a5342a1851fed72a9ee2178",
           "Name": "numbers",
           "Description": "List of numbers to be averaged.\n\ndouble[]",
           "UsingDefaultValue": false,
@@ -1467,7 +1516,7 @@
       ],
       "Outputs": [
         {
-          "Id": "59628490b87a4c8ea9e6a0911bdcdbdc",
+          "Id": "426b73cd5a8a40ac810c1089827c0b70",
           "Name": "average",
           "Description": "Average of the list of numbers.",
           "UsingDefaultValue": false,
@@ -1485,7 +1534,7 @@
       "Id": "139c0088c09e46d8b02912f860d6d98f",
       "Inputs": [
         {
-          "Id": "d25b7e200992457fbdc412be283cec98",
+          "Id": "25eed7364d694b19901580d76832e5cf",
           "Name": "",
           "Description": "Node to evaluate.",
           "UsingDefaultValue": false,
@@ -1496,7 +1545,7 @@
       ],
       "Outputs": [
         {
-          "Id": "cec577d5a18a4a45ba6bfe1794631710",
+          "Id": "108c99769f294dd29e9926604124597b",
           "Name": "",
           "Description": "Watch contents.",
           "UsingDefaultValue": false,
@@ -1509,35 +1558,35 @@
       "Description": "Visualize the output of node."
     },
     {
-      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
-      "NodeType": "PythonScriptNode",
-      "Code": "# Enable Python support and load DesignScript library\r\nimport clr\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\n\r\n# The inputs to this node will be stored as a list in the IN variables.\r\ndataEnteringNode = IN\r\n\r\n# Place your code below this line\r\n\r\n# Assign your output to the OUT variable.\r\nOUT = [x/1000.0 - IN[1] + IN[2] for x in IN[0]]",
-      "VariableInputPorts": true,
-      "Id": "fdddce30b2ab4a47b43c0df16bdd90c2",
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Function, DynamoCore",
+      "FunctionSignature": "46a3a667-ec7a-49ed-8675-ed77333ecd8e",
+      "FunctionType": "Graph",
+      "NodeType": "FunctionNode",
+      "Id": "39ba49c2305b429b82abc33f5816cbdd",
       "Inputs": [
         {
-          "Id": "0494a58620e146e48e29a9c54478999c",
-          "Name": "IN[0]",
-          "Description": "Input #0",
+          "Id": "5dc4970f537e4c2a84014efb3c6e44da",
+          "Name": "input",
+          "Description": "var[]..[]",
           "UsingDefaultValue": false,
           "Level": 2,
           "UseLevels": false,
           "KeepListStructure": false
         },
         {
-          "Id": "45137f14d39b415a8983051aa461b76d",
-          "Name": "IN[1]",
-          "Description": "Input #1",
-          "UsingDefaultValue": false,
+          "Id": "df41aaa693164db19d7d92ce6ca2f2e6",
+          "Name": "addIndexes",
+          "Description": "bool\nDefault value : true",
+          "UsingDefaultValue": true,
           "Level": 2,
           "UseLevels": false,
           "KeepListStructure": false
         },
         {
-          "Id": "6f2c0744dfee4ec283e5400605e8a5f8",
-          "Name": "IN[2]",
-          "Description": "Input #2",
-          "UsingDefaultValue": false,
+          "Id": "9f6553e4a8374cbd9ce43b4bbc5586f7",
+          "Name": "reset",
+          "Description": "bool\nDefault value : true",
+          "UsingDefaultValue": true,
           "Level": 2,
           "UseLevels": false,
           "KeepListStructure": false
@@ -1545,9 +1594,29 @@
       ],
       "Outputs": [
         {
-          "Id": "6fc3e66da4f0489bb5688551130f5fd7",
-          "Name": "OUT",
-          "Description": "Result of the python script",
+          "Id": "a9a8354a2e4e472dbfdea83cb4f12815",
+          "Name": "str",
+          "Description": "return value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "This node that serializes the input information and presents it in a resizable text window."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "1938e4eb797f43a7b735cc126068585f",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "a8f7cdbf14ff4ea7aae1660b5d682b53",
+          "Name": "",
+          "Description": "Boolean",
           "UsingDefaultValue": false,
           "Level": 2,
           "UseLevels": false,
@@ -1555,7 +1624,7 @@
         }
       ],
       "Replication": "Disabled",
-      "Description": "Runs an embedded IronPython script."
+      "Description": "Selection between a true and false."
     }
   ],
   "Connectors": [
@@ -1598,6 +1667,11 @@
       "Start": "fca8c654f90e42c59556ce9c2582e5d5",
       "End": "34f58a25cd3c4cf09c4eb90acc993301",
       "Id": "b53e95bf954b4fdaa1d4fe6b96439039"
+    },
+    {
+      "Start": "fca8c654f90e42c59556ce9c2582e5d5",
+      "End": "bcead1a112bc4a06bb6be4c9de6bc02b",
+      "Id": "27c999f401114b35b5fb0f4f02b9c3ef"
     },
     {
       "Start": "64e41a0a14274e6581044205a3f97cf5",
@@ -1696,7 +1770,7 @@
     },
     {
       "Start": "33c711fd03e748659f3d5807a22219d2",
-      "End": "0494a58620e146e48e29a9c54478999c",
+      "End": "9d4aaf6b906446c2aaf81560b54d5e9a",
       "Id": "15f3ee0aa4124960b9356364128ae5aa"
     },
     {
@@ -1786,7 +1860,7 @@
     },
     {
       "Start": "5ab1f4b654d14fafa9718f947867efd7",
-      "End": "45137f14d39b415a8983051aa461b76d",
+      "End": "3f3b2b7995aa4fd7b9bec5a45db47a3d",
       "Id": "16bacd56d52b4727a292b2197b6c29ba"
     },
     {
@@ -1801,18 +1875,28 @@
     },
     {
       "Start": "e882d699be5e4131b9b15af5095da6fa",
-      "End": "6f2c0744dfee4ec283e5400605e8a5f8",
+      "End": "6b31d33d229841bab30e15b290b9b02b",
       "Id": "14d69e283f3c4d2e9875661cb02ca140"
     },
     {
-      "Start": "59628490b87a4c8ea9e6a0911bdcdbdc",
-      "End": "d25b7e200992457fbdc412be283cec98",
+      "Start": "6bb3165d9a824ff59db438773e3e60fe",
+      "End": "5e0e509c5a5342a1851fed72a9ee2178",
+      "Id": "b74b5d6d8243410ab22d63f062f93360"
+    },
+    {
+      "Start": "6bb3165d9a824ff59db438773e3e60fe",
+      "End": "5dc4970f537e4c2a84014efb3c6e44da",
+      "Id": "1d1b3c1946334d34bfce5d5b9076d396"
+    },
+    {
+      "Start": "426b73cd5a8a40ac810c1089827c0b70",
+      "End": "25eed7364d694b19901580d76832e5cf",
       "Id": "d4c4592b3e4f4b6bab7a6343c110ecdc"
     },
     {
-      "Start": "6fc3e66da4f0489bb5688551130f5fd7",
-      "End": "7de13b85a24a4d36bba5670c9488eb81",
-      "Id": "b74b5d6d8243410ab22d63f062f93360"
+      "Start": "a8f7cdbf14ff4ea7aae1660b5d682b53",
+      "End": "df41aaa693164db19d7d92ce6ca2f2e6",
+      "Id": "aea09553377143a8b935fee6c5790b48"
     }
   ],
   "Dependencies": [
@@ -1830,15 +1914,15 @@
     },
     "Camera": {
       "Name": "Background Preview",
-      "EyeX": 77355.1628889585,
-      "EyeY": 83264.410797586839,
-      "EyeZ": -104710.54759898318,
-      "LookX": -20482.280831994984,
-      "LookY": -9326.4272069805884,
-      "LookZ": 11926.060914820191,
-      "UpX": -0.13667726094551635,
-      "UpY": 0.98741377501406391,
-      "UpZ": 0.079582014782698232
+      "EyeX": 124134.67704824136,
+      "EyeY": 136606.91596333456,
+      "EyeZ": -220415.23420512292,
+      "LookX": -67261.794991277842,
+      "LookY": -62668.932372728304,
+      "LookZ": 127630.74752095994,
+      "UpX": -0.089758070282082214,
+      "UpY": 0.98129263266100653,
+      "UpZ": 0.17031791370374766
     },
     "NodeViews": [
       {
@@ -1878,8 +1962,8 @@
         "IsSetAsInput": true,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": -52.17581715728204,
-        "Y": -461.47402676023722
+        "X": 52.826874351920196,
+        "Y": -373.2717658925074
       },
       {
         "ShowGeometry": true,
@@ -1888,8 +1972,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 882.71888691318554,
-        "Y": -506.25669227782078
+        "X": 890.26881517453239,
+        "Y": -675.186337125456
       },
       {
         "ShowGeometry": true,
@@ -2008,8 +2092,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 1852.5336562616064,
-        "Y": -799.06110391982929
+        "X": 1839.6882648112867,
+        "Y": -928.270629684814
       },
       {
         "ShowGeometry": true,
@@ -2018,8 +2102,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 1853.1983250396556,
-        "Y": -609.78774118789238
+        "X": 1856.9763813485736,
+        "Y": -665.70297455987406
       },
       {
         "ShowGeometry": true,
@@ -2058,8 +2142,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 2532.4589827573054,
-        "Y": -681.04765641584322
+        "X": 2576.9022983618,
+        "Y": -703.209646231104
       },
       {
         "ShowGeometry": true,
@@ -2083,13 +2167,13 @@
       },
       {
         "ShowGeometry": true,
-        "Name": "Grade Plane Average",
+        "Name": "Grade Plane Average - Weighted Average from Dynamo",
         "Id": "012e195f025647558ed398191a52f8ad",
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 2763.2027749472136,
-        "Y": -46.206802954027154
+        "X": 2763.20277494721,
+        "Y": -46.2068029540272
       },
       {
         "ShowGeometry": true,
@@ -2098,8 +2182,8 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 1129.3222263419138,
-        "Y": -1297.9330054103141
+        "X": 1194.7045058607214,
+        "Y": -1391.1989041356719
       },
       {
         "ShowGeometry": true,
@@ -2273,13 +2357,13 @@
       },
       {
         "ShowGeometry": true,
-        "Name": "Watch",
+        "Name": "Grade Plane Average  - Weighted Average - with Revit Heights",
         "Id": "aedd83cce8974795b845e298f4694422",
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 3355.5837994746989,
-        "Y": -27.836748362557842
+        "X": 3397.1427186958226,
+        "Y": -40.153945577745858
       },
       {
         "ShowGeometry": true,
@@ -2294,32 +2378,12 @@
       {
         "ShowGeometry": true,
         "Name": "Springs.Watch+",
-        "Id": "7700cdf381b74ae48179cb2cecfe07b7",
+        "Id": "926283b0f79c4091aca153a9885bd022",
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 1122.1261601223162,
-        "Y": -833.6485161521033
-      },
-      {
-        "ShowGeometry": true,
-        "Name": "Math.Average",
-        "Id": "3cf4b5b51eea4a898349c507fbe7e40c",
-        "IsSetAsInput": false,
-        "IsSetAsOutput": false,
-        "Excluded": false,
-        "X": 3036.3628013887605,
-        "Y": -222.55936932351307
-      },
-      {
-        "ShowGeometry": true,
-        "Name": "Watch",
-        "Id": "139c0088c09e46d8b02912f860d6d98f",
-        "IsSetAsInput": false,
-        "IsSetAsOutput": false,
-        "Excluded": false,
-        "X": 3340.3946763558215,
-        "Y": -229.65425586784625
+        "X": 1200.446797369128,
+        "Y": -963.43095578724274
       },
       {
         "ShowGeometry": true,
@@ -2328,13 +2392,53 @@
         "IsSetAsInput": false,
         "IsSetAsOutput": false,
         "Excluded": false,
-        "X": 2792.8002336763593,
-        "Y": -219.48331414592269
+        "X": 2772.1451794792624,
+        "Y": -236.16624253588643
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Math.Average",
+        "Id": "3cf4b5b51eea4a898349c507fbe7e40c",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3037.9516517116135,
+        "Y": -240.03672287490303
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "139c0088c09e46d8b02912f860d6d98f",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 3397.6297828567649,
+        "Y": -245.25377550878613
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Springs.Watch+",
+        "Id": "39ba49c2305b429b82abc33f5816cbdd",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 2948.0065501253493,
+        "Y": -456.60464281971542
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "1938e4eb797f43a7b735cc126068585f",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 2655.62147131034,
+        "Y": -412.66343940281712
       }
     ],
     "Annotations": [],
-    "X": -1554.9566927413457,
-    "Y": 654.19123626123962,
-    "Zoom": 0.74599495600279842
+    "X": -1341.7236342757092,
+    "Y": 707.17347425611661,
+    "Zoom": 0.71366912063163113
   }
 }
