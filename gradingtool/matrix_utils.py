@@ -365,7 +365,7 @@ class MatrixUtils(object):
 
         return norm
 
-     @classmethod
+    @classmethod
     def split_curve_segment_by_distance(cls, v1, v2, min_dist):
         """
         :param v1:
