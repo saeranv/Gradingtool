@@ -1,7 +1,7 @@
 from __future__ import print_function
 from loadenv import *
 
-import cPickle
+import pickle
 
 """
 Cache for astro
@@ -18,28 +18,27 @@ Note: May need to do this:
 CACHE_DIR = os.path.join(CURR_DIR, "cache")
 
 
-def pickle(data, cpickle_path, cpickle_name=None):
+def pickledata(data, cpickle_path, cpickle_name=None):
     """ Non-binary pickle """
     if cpickle_name is None:
         pkl_file_path = os.path.join(cpickle_path)
     else:
         pkl_file_path = os.path.join(cpickle_path, cpickle_name)
 
-    with open(pkl_file_path, "w") as outf:
-        cPickle.dump(data, outf)
+    with open(pkl_file_path, "wb") as outf:
+        pickle.dump(data, outf, protocol=2)
 
     return pkl_file_path
 
 
-def unpickle(pkl_file_path):
+def unpickledata(pkl_file_path):
     """ Read non-binary picle """
-    with open(pkl_file_path, "r") as inf:
-        unpickled_object = cPickle.load(inf)
+    with open(pkl_file_path, "rb") as inf:
+        unpickled_object = pickle.load(inf)
         return unpickled_object
 
 
 # TODO: wonder if I should have a cache/interface parent
-
 class Cache(object):
     def __init__(self):
         self._app_listener = None
@@ -63,10 +62,10 @@ class Cache(object):
         return self._gh_listener
 
     def send(self, v):
-        return pickle(v, self.gh_listener)
+        return pickledata(v, self.gh_listener)
 
     def recieve(self):
-        return unpickle(self.app_listener)
+        return unpickledata(self.app_listener)
 
 
 if __name__ == "__main__":
